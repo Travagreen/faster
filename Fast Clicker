@@ -1,0 +1,108 @@
+import pygame  
+from random import randint 
+from time import time 
+pygame.init() 
+mw = pygame.display.set_mode((500,500)) 
+back = (200,200,255) 
+mw.fill(back) 
+ 
+clock = pygame.time.Clock() 
+ 
+class Area(): 
+    def __init__(self, x,y,width, height, color): 
+        self.rect = pygame.Rect(x,y,width,height) 
+        self.fill_color = color 
+    def color(self, new_color): 
+        self.fill_color = new_color 
+    def fill(self): 
+        pygame.draw.rect(mw, self.fill_color, self.rect) 
+    def outline(self, frame_color, thickness): 
+        pygame.draw.rect(mw, frame_color, self.rect, thickness) 
+    def collidepoint(self, x,y): 
+        return self.rect.collidepoint(x,y)  
+ 
+ 
+ 
+class Label(Area): 
+    def set_text(self, text, fsize, color): 
+        self.image = pygame.font.Font(None, fsize).render(text, True, color) 
+    def draw(self, shift_x, shift_y): 
+        self.fill() 
+        mw.blit(self.image, (self.rect.x + shift_x,self.rect.y + shift_y)) 
+ 
+BLACK = (0,0,0) 
+YELLOW = (255,255,0) 
+BLUE = (0,0,255) 
+RED = (255, 0, 0) 
+GREEN = (0, 255, 0) 
+ 
+cards = [] 
+x = 70 
+num_cards = 4 
+for i in range(num_cards): 
+    card = Label(x, 170, 70, 100, YELLOW) 
+    card.outline(BLUE, 10) 
+    card.set_text('CLICK', 26, BLACK) 
+    cards.append(card) 
+    x += 100 
+wait = 0 
+score = 0 
+start_time = time() 
+cur_time = time() 
+time_text = Label(0,0, 50,50, back) 
+time_text.set_text("Время:", 36, BLACK) 
+time_text.draw(0,0) 
+ 
+timer = Label(20,20, 70,70, back) 
+timer.set_text("0", 36, BLACK) 
+timer.draw(10, 10) 
+ 
+count_text = Label(451, 10, 30, 10, back) 
+count_text.set_text("Счёт:", 36, BLACK) 
+count_text.draw(0,0) 
+ 
+score_text = Label(470, 35, 50, 50, back) 
+score_text.set_text("0", 36, BLACK) 
+score_text.draw(0,0) 
+ 
+ 
+ 
+ 
+ 
+while True: 
+    new_time = time() 
+    if new_time - cur_time >= 1: 
+        cur_time = time() 
+        timer.set_text(str(int(new_time-start_time)), 36, BLACK) 
+        timer.draw(10,10) 
+    if wait == 0: 
+        number = randint(0, num_cards-1) 
+        for i in range(num_cards): 
+            cards[i].color(YELLOW) 
+            if i == number: 
+                cards[i].draw(10,30) 
+            else: 
+                cards[i].fill() 
+        wait = 20 
+    else: 
+        wait -= 1 
+    for event in pygame.event.get(): 
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: 
+            x, y = event.pos 
+            for i in range(num_cards): 
+                if cards[i].collidepoint(x,y): 
+                    if i == number: 
+                        score += 1 
+                        cards[i].color(GREEN) 
+                    else: 
+                        score -= 1 
+                        cards[i].color(RED) 
+                    cards[i].fill() 
+                    score_text.set_text(str(score), 30, BLACK) 
+                    score_text.draw(0,0) 
+    if score > 5: 
+        print("Вы выиграли!") 
+        break 
+ 
+    pygame.display.update() 
+    clock.tick(40)
